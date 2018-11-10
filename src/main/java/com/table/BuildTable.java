@@ -10,12 +10,19 @@ import org.apache.hadoop.hbase.util.Bytes;
 public class BuildTable {
 
     //获取配置信息
-    private Configuration configuration = HBaseConfiguration.create();
+    public static Configuration configuration = HBaseConfiguration.create();
+    static{
+        //使用HBaseConfiguration的单例方法实例化
+        configuration = HBaseConfiguration.create();
+        configuration.set("hbase.zookeeper.quorum", "192.168.152.200");
+        configuration.set("hbase.zookeeper.property.clientPort", "2181");
+    }
+
     //表名的二进制数据
 
-    public static final byte[] T_RELATIONS = Bytes.toBytes("weibo_relation");
-    public static final byte[] T_CONTENT = Bytes.toBytes("weibo_content");
-    public static final byte[] T_MAIL = Bytes.toBytes("weibo_mail");
+    public static final byte[] T_RELATIONS = Bytes.toBytes("weibo:relation");
+    public static final byte[] T_CONTENT = Bytes.toBytes("weibo:content");
+    public static final byte[] T_MAIL = Bytes.toBytes("weibo:mail");
 
     /**
      * 构建命名空间
@@ -23,7 +30,7 @@ public class BuildTable {
      * author：Dikey
      * createTime：系统当前时间
      */
-    public void initTable() {
+    public static void initTable() {
         HBaseAdmin admin = null;
         try {
             //获取admin
@@ -48,14 +55,14 @@ public class BuildTable {
     /**
      * 表存在则删除
      */
-    public boolean notExistOrDelete(byte[]... tableNames) {
+    public static boolean notExistOrDelete(byte[]... tableNames) {
         boolean flag = true;
         HBaseAdmin admin = null;
         for (byte[] tableName : tableNames) {
             try {
                 admin = new HBaseAdmin(configuration);
                 if (admin.tableExists(tableName)) {
-                    System.out.println("表“" + tableName + "”已存在，将删除该表重新创建！！！");
+                    System.out.println("表“" + Bytes.toString(tableName) + "”已存在，将删除该表重新创建！！！");
                     //删除表之前需要先disable
                     admin.disableTable(tableName);
                     admin.deleteTable(tableName);
@@ -79,7 +86,7 @@ public class BuildTable {
      * ColumnLabel:标题   内容   图片URL《---这什么玩意儿？我还得给他创建数据库？算了保存到本地吧<--本项目只考虑内容
      * Version:1个版本
      */
-    public void createContentTable() {
+    public static void createContentTable() {
         //自写函数判断表是否存在，存在则删除表重新建立
         notExistOrDelete(T_CONTENT);
         HBaseAdmin admin = null;
@@ -105,7 +112,7 @@ public class BuildTable {
             contentTableDescriptor.addFamily(info);
             //通过admin创建contentTableDescriptor所描述的表
             admin.createTable(contentTableDescriptor);
-            System.out.println("表“" + T_CONTENT + "”创建成功！！！");
+            System.out.println("表“" + Bytes.toString(T_CONTENT) + "”创建成功！！！");
 
         } catch (Exception e) {
             System.out.println("error发生于BuildTable.createContentTable()");
@@ -126,7 +133,7 @@ public class BuildTable {
      * ColumnValue:用户ID,
      * Version：1个版本.
      */
-    public void creteRelationTable() {
+    public static void creteRelationTable() {
         //自写函数判断表是否存在，存在则删除表重新建立
         notExistOrDelete(T_RELATIONS);
 
@@ -160,7 +167,7 @@ public class BuildTable {
             relationDescriptor.addFamily(fansDescriptor);
             //通过admin创建表
             admin.createTable(relationDescriptor);
-            System.out.println("表“" + T_RELATIONS + "”创建成功！！！");
+            System.out.println("表“" + Bytes.toString(T_RELATIONS) + "”创建成功！！！");
 
         } catch (Exception e) {
             System.out.println("error发生于createRelationTable()");
@@ -183,7 +190,7 @@ public class BuildTable {
      * Version:1000
      */
 
-    public void createMailTable() {
+    public static void createMailTable() {
         //自写函数判断表是否存在，存在则删除表重新建立
         notExistOrDelete(T_MAIL);
         HBaseAdmin admin = null;
@@ -214,4 +221,15 @@ public class BuildTable {
         }
     }
 
+    /**
+     * 初始化系统
+     * 建表
+     * */
+    public static void buildTable() {
+
+        createContentTable();
+        createMailTable();
+        creteRelationTable();
+        System.out.println("表初始化成功！！！");
+    }
 }
