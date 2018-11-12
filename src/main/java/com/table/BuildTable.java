@@ -30,7 +30,7 @@ public class BuildTable {
      * author：Dikey
      * createTime：系统当前时间
      */
-    public static void initTable() {
+    public static void createNamespace() {
         HBaseAdmin admin = null;
         try {
             //获取admin
@@ -222,7 +222,9 @@ public class BuildTable {
     }
 
     /**
+     * 仅供第一次启动系统时调用，调用则清空数据！！！
      * 初始化系统
+     * 创建命名空间
      * 建表
      * */
     public static void buildTable() {
